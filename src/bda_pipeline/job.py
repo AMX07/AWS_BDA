@@ -41,8 +41,19 @@ class JobRunner:
             or blueprint_metadata.get("name")
             or config.blueprint_name
         )
+        blueprint_arn = (
+            blueprint_metadata.get("arn")
+            or blueprint_metadata.get("blueprintArn")
+            or blueprint_metadata.get("resourceArn")
+        )
+        if not blueprint_arn:
+            raise RuntimeError(
+                "Blueprint metadata is missing an ARN. Ensure the blueprint exists and "
+                "that your credentials allow describing it."
+            )
         request: Dict[str, Any] = {
             "blueprintIdentifier": blueprint_id,
+            "blueprintArn": blueprint_arn,
             "inputDataConfig": {"s3Uri": config.input_s3_uri},
             "outputDataConfig": {
                 "s3Uri": config.output_s3_uri,

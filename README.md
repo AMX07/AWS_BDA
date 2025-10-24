@@ -50,14 +50,18 @@ run-bda-pipeline \
   s3://output-bucket/path/for/results \
   ./output/results.csv \
   --blueprint-name idp-insurance-entity-blueprint \
-  --region us-east-1 \
-  --role-arn arn:aws:iam::123456789012:role/BDAExecutionRole
+  --region us-east-1
 ```
 
 Optional parameters:
 
 - `--job-name` – friendly name for the processing job
+- `--role-arn` – IAM role ARN that BDA should assume for cross-account bucket access
 - `--tags` – JSON object containing resource tags (e.g. `'{"Env":"Dev"}'`)
+
+The CLI automatically provisions the blueprint (creating or updating as needed) and injects
+the correct blueprint ARN into the document processing job request, so providing AWS
+credentials is sufficient for most environments.
 
 ## Output
 
