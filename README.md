@@ -4,6 +4,7 @@ A complete, production-ready pipeline for extracting structured data from unstru
 
 ## Table of Contents
 
+- [Quick Start Guide](QUICKSTART.md) ⚡ **Start here if new!**
 - [Overview](#overview)
 - [Features](#features)
 - [Architecture](#architecture)
@@ -13,7 +14,7 @@ A complete, production-ready pipeline for extracting structured data from unstru
 - [Usage](#usage)
 - [Extracted Fields](#extracted-fields)
 - [Project Structure](#project-structure)
-- [Troubleshooting](#troubleshooting)
+- [Troubleshooting](#troubleshooting) - See [TROUBLESHOOTING.md](TROUBLESHOOTING.md) for detailed guide
 - [AWS Permissions](#aws-permissions)
 - [Best Practices](#best-practices)
 
@@ -101,6 +102,8 @@ This pipeline extracts the following entities from insurance documents:
 
 ## Installation
 
+> **👉 New to this pipeline? Follow the [Quick Start Guide](QUICKSTART.md) for step-by-step instructions!**
+
 ### 1. Clone the Repository
 
 ```bash
@@ -132,7 +135,16 @@ cp .env.example .env
 # Edit .env with your credentials
 ```
 
-### 4. Configure the Pipeline
+### 4. Validate Environment
+
+```bash
+# Run validation to check everything is set up correctly
+python3 validate_environment.py
+```
+
+This checks Python version, dependencies, AWS credentials, and configuration files.
+
+### 5. Configure the Pipeline
 
 Edit `config.yaml` to customize:
 - AWS region
@@ -301,15 +313,19 @@ The LOB field uses a complex mapping system with 229+ series numbers:
 
 ```
 AWS_BDA/
-├── README.md                      # This file
+├── README.md                      # This file - Complete documentation
+├── QUICKSTART.md                  # Quick start guide for new users
+├── TROUBLESHOOTING.md             # Detailed troubleshooting guide
 ├── requirements.txt               # Python dependencies
 ├── config.yaml                    # Main configuration file
 ├── .env.example                   # Environment variables template
+├── .gitignore                     # Git ignore rules
 │
 ├── blueprint_schema.json          # BDA Blueprint definition
 │
 ├── setup.sh                       # Initial setup script
 ├── run_pipeline.sh               # Complete pipeline runner
+├── validate_environment.py       # Environment validation script
 │
 ├── create_blueprint.py           # Create/update BDA Blueprint
 ├── create_project.py             # Create BDA Project
@@ -324,73 +340,52 @@ AWS_BDA/
 
 ## Troubleshooting
 
-### Common Issues
+> **📖 For comprehensive troubleshooting, see [TROUBLESHOOTING.md](TROUBLESHOOTING.md)**
 
-#### 1. BDA Service Not Available
+### Quick Diagnostics
 
-```
-Error: BDA service not available in region
-```
-
-**Solution**: BDA is only available in `us-east-1` and `us-west-2`. Update `config.yaml`:
-
-```yaml
-aws:
-  region: us-east-1
-```
-
-#### 2. Insufficient Permissions
-
-```
-Error: AccessDeniedException
-```
-
-**Solution**: Ensure your IAM user/role has required permissions (see [AWS Permissions](#aws-permissions))
-
-#### 3. Blueprint Already Exists
-
-```
-Warning: Blueprint already exists
-```
-
-**Solution**: This is normal. The script will use the existing blueprint. To update:
+Before troubleshooting, run the validation script:
 
 ```bash
-python3 create_blueprint.py --update
+python3 validate_environment.py
 ```
 
-#### 4. S3 Access Denied
+This will identify most common issues with:
+- Python installation
+- Dependencies
+- AWS credentials
+- Configuration
+- AWS region settings
 
-```
-Error: Access Denied when accessing S3 bucket
-```
+### Common Issues (Quick Reference)
 
-**Solution**:
-- Verify bucket names are correct
-- Ensure S3 permissions are configured
-- Check bucket is in the same region or has appropriate CORS settings
+#### Blueprint Creation Failed
 
-#### 5. Document Processing Timeout
+**Most Common Causes**:
+1. **Dependencies not installed** → Run `./setup.sh` and `source venv/bin/activate`
+2. **Wrong AWS region** → Update `config.yaml` to use `us-east-1` or `us-west-2`
+3. **Missing AWS credentials** → Run `aws configure`
+4. **Insufficient permissions** → Check IAM permissions (see [AWS Permissions](#aws-permissions))
 
-```
-Error: Job processing exceeded timeout
-```
+**Debug**:
+```bash
+# Check detailed error
+cat document_processing.log
 
-**Solution**: Increase timeout in `config.yaml`:
-
-```yaml
-processing:
-  timeout: 7200  # 2 hours
-```
-
-### Debug Mode
-
-Enable detailed logging:
-
-```yaml
+# Enable debug mode in config.yaml
 logging:
   level: DEBUG
 ```
+
+#### Processing Errors
+
+See [TROUBLESHOOTING.md](TROUBLESHOOTING.md) for detailed solutions to:
+- S3 access issues
+- Timeout errors
+- Network connectivity
+- Schema validation errors
+- Permission problems
+- And more...
 
 ## AWS Permissions
 

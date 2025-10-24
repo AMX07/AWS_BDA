@@ -65,6 +65,13 @@ def create_blueprint(client, blueprint_config: dict, schema: dict, logger):
 
     except ClientError as e:
         error_code = e.response['Error']['Code']
+        error_message = e.response['Error']['Message']
+
+        logger.error(f"AWS ClientError occurred:")
+        logger.error(f"  Error Code: {error_code}")
+        logger.error(f"  Error Message: {error_message}")
+        logger.error(f"  Full error: {e}")
+
         if error_code == 'ResourceAlreadyExistsException':
             logger.warning(f"Blueprint {blueprint_name} already exists")
             # Try to get existing blueprint
@@ -75,9 +82,23 @@ def create_blueprint(client, blueprint_config: dict, schema: dict, logger):
             except ClientError as get_error:
                 logger.error(f"Could not retrieve existing blueprint: {get_error}")
                 raise
+        elif error_code == 'UnrecognizedClientException':
+            logger.error("Service not available. BDA is only available in us-east-1 and us-west-2")
+            logger.error("Check your AWS region in config.yaml")
+            raise
+        elif error_code == 'InvalidSignatureException':
+            logger.error("AWS credentials issue. Check your credentials with 'aws configure'")
+            raise
+        elif error_code == 'AccessDeniedException':
+            logger.error("Insufficient permissions. Your AWS user/role needs bedrock:CreateBlueprint permission")
+            raise
         else:
             logger.error(f"Error creating blueprint: {e}")
             raise
+    except Exception as e:
+        logger.error(f"Unexpected error creating blueprint: {e}")
+        logger.error(f"Error type: {type(e).__name__}")
+        raise
 
 
 def update_blueprint(client, blueprint_name: str, schema: dict, logger):
