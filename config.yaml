@@ -1,0 +1,53 @@
+# AWS Bedrock Data Automation Configuration
+
+# AWS Configuration
+aws:
+  region: us-east-1  # Region where BDA is available (us-east-1 or us-west-2)
+  profile: default   # AWS CLI profile to use (optional, leave as 'default' to use default credentials)
+
+# Blueprint Configuration
+blueprint:
+  name: intelligent-document-extraction
+  stage: LIVE  # Options: DEVELOPMENT, LIVE
+  schema_file: blueprint_schema.json
+
+# Data Automation Project Configuration
+project:
+  name: document-processing-project
+  description: Intelligent document processing pipeline for insurance documents
+
+# S3 Configuration (will be overridden by command-line arguments at runtime)
+s3:
+  input_bucket: ""       # Will be provided at runtime
+  input_prefix: ""       # Optional prefix within input bucket (e.g., "documents/")
+  output_bucket: ""      # Will be provided at runtime
+  output_prefix: "results/"  # Prefix for output files
+
+# Processing Configuration
+processing:
+  batch_size: 10         # Number of documents to process in parallel
+  max_retries: 3         # Maximum retry attempts for failed documents
+  retry_delay: 5         # Delay in seconds between retries
+  poll_interval: 10      # Seconds to wait between polling for job completion
+  timeout: 3600          # Maximum seconds to wait for a single document processing (1 hour)
+
+# Supported document formats
+supported_formats:
+  - pdf
+  - png
+  - jpg
+  - jpeg
+  - tiff
+  - tif
+
+# Output Configuration
+output:
+  csv_filename: document_extraction_results.csv
+  include_timestamp: true  # Append timestamp to output filename
+  include_metadata: true   # Include processing metadata in output
+
+# Logging Configuration
+logging:
+  level: INFO  # Options: DEBUG, INFO, WARNING, ERROR, CRITICAL
+  log_file: document_processing.log
+  console_output: true

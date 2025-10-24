@@ -1,0 +1,79 @@
+{
+  "blueprintName": "intelligent-document-extraction",
+  "blueprintDescription": "Extract entities from insurance documents including websites, names, logos, emails, phone numbers, addresses, signatures, LOB, state, and language",
+  "version": "1.0",
+  "type": "DOCUMENT",
+  "fields": [
+    {
+      "fieldName": "SiteOnForm",
+      "fieldType": "STRING",
+      "fieldDescription": "List ALL websites mentioned (comma-separated if multiple, blank if none). Include any URLs, domain names, or web addresses. Include ALL variations of websites, including those with paths/links. If you see both 'www.eaststreetins.com' and 'www.eaststreetins.com/discounts', include BOTH separated by comma. Capture the full URL including any paths after the domain. HYPERLINK DETECTION - Infer websites from hyperlinked text: If you see 'Online Account Manager' in blue/underlined (hyperlink style), add 'OAM' to the websites list. If you see 'East Street Insurance' in blue/underlined, add 'eaststreetins.com'. If you see 'Indiana Farm Bureau Insurance' in blue/underlined, add 'infarmbureau.com'. Look for text that appears to be a hyperlink (blue color, underlined) even if the actual URL is not visible. Include both the visible URLs AND the inferred URLs from hyperlinked text.",
+      "required": false,
+      "multiValue": true
+    },
+    {
+      "fieldName": "NameOnForm",
+      "fieldType": "STRING",
+      "fieldDescription": "List ALL company names mentioned (comma-separated if multiple, blank if none). Look for insurance companies, business names, organizations.",
+      "required": false,
+      "multiValue": true
+    },
+    {
+      "fieldName": "LogoOnForm",
+      "fieldType": "STRING",
+      "fieldDescription": "List ALL logo categories detected (comma-separated if multiple, blank if none). Match to reference logos provided. Use exact category name. If multiple logos are present, separate with commas (NO SPACES after comma). Example: 'IFBI' or 'UFFL,UHL' or 'IFBI,CompanyB'",
+      "required": false,
+      "multiValue": true
+    },
+    {
+      "fieldName": "EmailOnForm",
+      "fieldType": "STRING",
+      "fieldDescription": "List ALL email addresses (comma-separated if multiple, blank if none).",
+      "required": false,
+      "multiValue": true
+    },
+    {
+      "fieldName": "PhoneOnForm",
+      "fieldType": "STRING",
+      "fieldDescription": "List ALL phone or fax numbers (comma-separated if multiple, blank if none). Include area codes. CRITICAL: Pay special attention to phone numbers that may appear in headers, footers, or contact information sections. COMMON ESI NUMBER: 1-833-327-8787 or 833-327-8787 (East Street Insurance customer service) - this number appears frequently and must be captured. Phone numbers can appear in various formats: '1-833-327-8787', '(833) 327-8787', '833-327-8787', '1- 833-327-8787'. Scan thoroughly in: top header, bottom footer, signature blocks, contact sections, and email body text.",
+      "required": false,
+      "multiValue": true
+    },
+    {
+      "fieldName": "AddressOnForm",
+      "fieldType": "STRING",
+      "fieldDescription": "List ALL physical addresses or PO boxes. Include street addresses and PO boxes. DO NOT include just city and state (e.g., 'Indianapolis IN' is NOT an address). ONLY include if there is a street address or PO Box. If only city/state is found, leave this field BLANK. COMMON PATTERN - East Street Insurance: If you see an East Street Insurance email with a PO Box at the bottom, it is likely: 'P.O. Box 6496, Indianapolis, IN 46206-6496'. FORMATTING RULES FOR ADDRESSES: Single address: 'PO Box 6496, Indianapolis, IN 46206-6496' (no brackets). Multiple addresses: '[PO Box 6496, Indianapolis, IN 46206-6496], [214 E NORTH D ST, GAS CITY IN 46933-1117]' (each address in brackets, separated by comma and space). Each address contains internal commas, so brackets are REQUIRED when there are multiple addresses.",
+      "required": false,
+      "multiValue": true
+    },
+    {
+      "fieldName": "SignatureOnForm",
+      "fieldType": "STRING",
+      "fieldDescription": "List ALL signatures detected (comma-separated if multiple, blank if none). Match to reference signatures provided. Use exact signer name.",
+      "required": false,
+      "multiValue": true
+    },
+    {
+      "fieldName": "LOB",
+      "fieldType": "STRING",
+      "fieldDescription": "Extract the form number and identify the series number to map to the category. CRITICAL: ONLY extract if you can see an EXPLICIT form ID number on the document. The form ID is typically in format like '031-077', '006-578', '03-15-02', '3-150', '221-XXX'. DO NOT guess or infer the LOB based on document content or context. If you CANNOT find a visible form ID number, leave this field BLANK. WHERE TO LOOK FOR FORM IDs: PRIORITY LOCATION: Check the BOTTOM LEFT CORNER of every page carefully - form IDs are frequently located here. EMAIL SCREENSHOTS: If the image appears to be a screenshot of an email, the form ID typically appears at the TOP CENTER of the page - scan this area thoroughly. Check the TOP CORNERS of every page (especially first and last pages). Look in the BOTTOM CORNERS and FOOTER areas (left, center, and right). Check near or around company logos. Look for small text that looks like a reference number. The form ID may be in various fonts/sizes - scan carefully. Form IDs can start with ANY series number including 221 (e.g., '221-054', '221-XXX'). Common labels near form IDs: 'Form', 'Form No.', 'Form #', or just the number alone. The form ID might appear multiple times on different pages. EXTRACTION STEPS: 1) CAREFULLY scan ALL pages for form ID numbers in format: XXX-XXX or XX-XX-XX or X-XXX. 2) Find the explicit form ID number on the form (e.g., '031-077' or '03-15-02' or '3-150'). 3) Take ONLY the digits BEFORE the FIRST hyphen (e.g., '031' from '031-077', '03' from '03-15-02', '3' from '3-150'). 4) Convert to a 3-digit series number with leading zeros if needed: '031' stays '031', '03' becomes '003', '3' becomes '003', '31' becomes '031'. 5) Use the mapping to return the FULL category description. CRITICAL PARSING RULES: '03-15-02' → series '003' (NOT '031' - take digits before FIRST hyphen only). '3-150' → series '003' (NOT '315' - take digits before FIRST hyphen only). '031-077' → series '031' (three digits before first hyphen). '6-578' → series '006' (pad single digit with zeros). '21-045' → series '021' (two digits padded to three). COMMON MISTAKES TO AVOID: Do NOT take all digits before a dash (only before the FIRST dash). Do NOT concatenate numbers across hyphens. Do NOT extract page numbers or dates as form IDs. Do NOT extract policy numbers or claim numbers as form IDs. Series # mapping: 000 → P&C Underwriting, 001 → P&C Underwriting - Commercial, 002 → P&C Underwriting, 003 → P&C Underwriting - Commercial, 004 → P&C Underwriting - Commercial, 005 → P&C Underwriting - Several used but considered not used., 006 → P&C Underwriting - HO, Farm, & Commercial, 007 → P&C Underwriting - HO & Dwelling, 008 → P&C Underwriting - Farm, 009 → Crop Hail, 010 → Life Insurance, 011 → Life Insurance, 012 → Life Insurance (includes applications), 013 → Life Insurance, 014 → Life Insurance, 015 → Life Insurance (includes Life policies), 016 → Life Insurance, 017 → Life Insurance, 018 → Life Insurance / UFFL2, 019 → Life Insurance and P&C, 020 → P&C Claims, 021 → Auto Underwriting, 022 → School Bus/Personal Lines Umbrella, 023 → P&C Accounting, 025 → Commercial (includes Church), 026 → P&C Underwriting Worker's Compensation, 027 → P&C Underwriting, 028 → P&C Underwriting (includes Service Station), 030 → Agency Forms, 031 → Advertising & Promotions (Brochures, Flyers, etc.), 032 → Agency Forms, 033 → Agency Forms, 035 → AP & CO Agency Stationery, 036 → AP & CO Agency Stationery, 038 → Promotions (Lifesavers, golf balls, etc.), 040 → Claims, 041 → Claims, 042 → Claims, 043 → Claims, 044 → Claims, 045 → Claims, 046 → Claims, 050 → Inventory Control, 051 → Stock Paper, 052 → General Office Supplies, 053 → Envelopes, 055 → Document Services, 056 → Property & Facilities, 057 → Print Services, 058 → Purchasing and Inventory, 059 → Binders, 061 → Talent Management, 062 → Call Center, 065 → Rural Insurance Agency, 067 → Public Relations and Corporate Communication, 068 → Internal Auditing, 080 → DIP, 081 → Computer Paper Forms, 082 → Computer Paper Forms, 083 → Computer Paper Forms, 084 → Computer Paper Forms, 085 → Computer Paper Forms, 090 → Agency, 091 → Agency, 092 → Agency, 093 → Agency, 100 → FB Incorporated - not used yet, 101 → FB Incorporated, 102 → FB Incorporated - Field Office Stationery and more, 103 → FB Incorporated - District Office Stationery and more, 200 → UHL, 201 → UHL, 202 → UHL, 203 → UHL, 204 → UHL, 205 → UHL, 221 → ESI P&C Auto & Home Lines Only, 222 → ESI Reserved for Umbrella (PUM, FUM, UMB) Docs - NO COMM!, 223 → ESI Reserved for Commercial Docs (223-001 thru 223-999), 224 → Reserved for ESI Commercial Docs (224-001 thru 224-999), 225 → Reserved for ESI Commercial Docs (225-001 thru 225-999), 226 → Reserved for ESI Commercial Docs (226-001 thru 226-999), 227 → Reserved for ESI Commercial Docs (227-001 thru 227-999), 228 → Reserved for ESI Commercial Docs (228-001 thru 228-999), 229 → Reserved for ESI Commercial Docs (229-001 thru 229-999). Examples: '031-077' → series '031' → 'Advertising & Promotions (Brochures, Flyers, etc.)', '03-15-02' → series '003' → 'P&C Underwriting - Commercial', '3-150' → series '003' → 'P&C Underwriting - Commercial', '006-578' → series '006' → 'P&C Underwriting - HO, Farm, & Commercial', '221-054' → series '221' → 'ESI P&C Auto & Home Lines Only'. If NO form ID is visible → return BLANK (empty string).",
+      "required": false,
+      "multiValue": false
+    },
+    {
+      "fieldName": "State",
+      "fieldType": "STRING",
+      "fieldDescription": "Determine the state (two-letter code). If the form is for Indiana Farm Bureau Insurance (IFBI), return 'IN'. If the form is for East Street Insurance (ESI) or if you see an ESI logo, return 'OH'. IMPORTANT: ESI logo always indicates an Ohio (OH) state document. Otherwise, look for state mentioned in the document. Return two-letter state abbreviation (e.g., 'IN', 'OH', 'CA', 'TX').",
+      "required": false,
+      "multiValue": false
+    },
+    {
+      "fieldName": "Language",
+      "fieldType": "STRING",
+      "fieldDescription": "Identify the primary language. Return full language name (e.g., 'English', 'Spanish', 'French').",
+      "required": false,
+      "multiValue": false
+    }
+  ],
+  "extractionInstructions": "IMPORTANT RULES: For fields with multiple values, use comma-separated format: 'value1, value2, value3'. For LogoOnForm with multiple values, use NO SPACES: 'UFFL,UHL' not 'UFFL, UHL'. Leave blank (empty string) if no values found for a field. Match logos and signatures EXACTLY to the reference categories/names provided. Be thorough - extract ALL instances of each field type. ANTI-HALLUCINATION RULES (CRITICAL): 1) LOB field: NEVER guess or infer. ONLY extract if you see an explicit form ID number. Extract the digits BEFORE the first hyphen (e.g., '03-15-02' → '003', NOT '031'). If no form ID is visible, leave BLANK. 2) AddressOnForm: NEVER include city/state alone (e.g., 'Indianapolis IN'). ONLY include if there's a street address or PO Box. If only city/state, leave BLANK. 3) DO NOT make assumptions based on document context - only extract what is explicitly visible on the form."
+}
